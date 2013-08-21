@@ -111,13 +111,68 @@
 	    	</div>
 	    </footer>
 	</div>
+
     <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
 	<script>
 	    var editor_left = ace.edit("editor_left");
+	    var editor_left_session = editor_left.getSession();
 	    editor_left.setTheme("ace/theme/xcode");
 	    
 	    var editor_right = ace.edit("editor_right");
+	    var editor_right_session = editor_right.getSession();
 	    editor_right.setTheme("ace/theme/xcode");
+
+    	/*Scrolling*/
+	    editor_left_session.on('changeScrollTop', function(scroll)
+		{
+			editor_right_session.setScrollTop(parseInt(scroll) || 0)
+		});
+		editor_left_session.on('changeScrollLeft', function(scroll)
+		{
+			editor_right_session.setScrollLeft(parseInt(scroll) || 0)
+		});
+
+		editor_right_session.on('changeScrollTop', function(scroll)
+		{
+			editor_left_session.setScrollTop(parseInt(scroll) || 0)
+		});
+		editor_right_session.on('changeScrollLeft', function(scroll)
+		{
+			editor_left_session.setScrollLeft(parseInt(scroll) || 0)
+		});
+
+		/*Changing value*/
+		editor_left.on('paste', function(text)
+		{
+			if(!editor_right_session.getValue())
+				editor_right_session.setValue(text);
+
+			compare_editor_values();
+		})
+		editor_right.on('paste', function(text)
+		{
+			if(!editor_left_session.getValue())
+				editor_left_session.setValue(text);
+
+			compare_editor_values();
+		})
+
+		function compare_editor_values()
+		{
+			var left_lines = editor_left_session.getDocument().getAllLines();
+			var right_lines = editor_right_session.getDocument().getAllLines();
+
+			var last_same_line = -1;
+			for(var i=0; i < left_lines.length; i++)
+			{
+	        	if(left_lines[i] == right_lines[i])
+	        		last_same_line = i;
+	        	else
+	        	{
+	        		editor_right_session.getDocument().insertNewLine({ row: i});
+	        	}
+			}
+		}
 	</script>
 </body>
 </html>
