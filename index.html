@@ -142,23 +142,28 @@
 		});
 
 		/*Changing value*/
+		var signal = 0;
 		editor_left.on('paste', function(text)
 		{
 			if(!editor_right_session.getValue())
 				editor_right_session.setValue(text);
-
-			compare_editor_values();
 		})
 		editor_right.on('paste', function(text)
 		{
 			if(!editor_left_session.getValue())
 				editor_left_session.setValue(text);
-
-			compare_editor_values();
 		})
 
+		editor_left.on('change', function(text)
+		{
+			if(signal == 0)
+			{
+				compare_editor_values();	
+			}
+		})
 		function compare_editor_values()
 		{
+			signal = 1;
 			var left_lines = editor_left_session.getDocument().getAllLines();
 			var right_lines = editor_right_session.getDocument().getAllLines();
 
@@ -166,12 +171,21 @@
 			for(var i=0; i < left_lines.length; i++)
 			{
 	        	if(left_lines[i] == right_lines[i])
+	        	{
 	        		last_same_line = i;
+	        		editor_left_session.removeGutterDecoration(i, 'not_matched_row');
+	        		editor_left_session.removeGutterDecoration(i, 'matched_row');
+	        		editor_left_session.addGutterDecoration(i, 'matched_row');
+	        	}
 	        	else
 	        	{
-	        		editor_right_session.getDocument().insertNewLine({ row: i});
+	        		editor_left_session.removeGutterDecoration(i, 'not_matched_row');
+	        		editor_left_session.removeGutterDecoration(i, 'matched_row');
+	        		editor_left_session.addGutterDecoration(i, 'not_matched_row');
+	        		//editor_right_session.getDocument().insertNewLine({ row: i});
 	        	}
 			}
+			signal = 0;
 		}
 	</script>
 </body>
