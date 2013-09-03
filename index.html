@@ -158,17 +158,22 @@
 		});
 
 		/*Changing value*/
+		var signal = 0;
 		editor_left.on('paste', function(text)
 		{
 			if(!editor_right_session.getValue())
 				editor_right_session.setValue(text);
+<<<<<<< HEAD
 
 			//compare_editor_values();
+=======
+>>>>>>> 8b82ba9ef56c8801c64bcab1e20d43facadd043c
 		})
 		editor_right.on('paste', function(text)
 		{
 			if(!editor_left_session.getValue())
 				editor_left_session.setValue(text);
+<<<<<<< HEAD
 
 			//compare_editor_values();
 		})
@@ -206,10 +211,27 @@
 	        	var currentRow = worker_editor.getSelectionRange().start.row;
 	        	passive_editor.getSession().getDocument().insert({row: currentRow, column: 0}, '\r\n');
 	       	}
+=======
+		})
+
+		editor_left.on('change', function(text)
+		{
+			if(signal == 0)
+			{
+				compare_editor_values();	
+			}
+		})
+		function compare_editor_values()
+		{
+			signal = 1;
+			var left_lines = editor_left_session.getDocument().getAllLines();
+			var right_lines = editor_right_session.getDocument().getAllLines();
+>>>>>>> 8b82ba9ef56c8801c64bcab1e20d43facadd043c
 
 			var last_same_line = -1;
 			for(var i=0; i < worker_lines.length; i++)
 			{
+<<<<<<< HEAD
 	        	if(worker_lines[i] == passive_lines[i])
 	        	{
 	        		last_same_line = i;
@@ -222,6 +244,21 @@
 	        		{
 		        		editor_left.getSession().removeMarker(markers[i].id);
 	        		}
+=======
+	        	if(left_lines[i] == right_lines[i])
+	        	{
+	        		last_same_line = i;
+	        		editor_left_session.removeGutterDecoration(i, 'not_matched_row');
+	        		editor_left_session.removeGutterDecoration(i, 'matched_row');
+	        		editor_left_session.addGutterDecoration(i, 'matched_row');
+	        	}
+	        	else
+	        	{
+	        		editor_left_session.removeGutterDecoration(i, 'not_matched_row');
+	        		editor_left_session.removeGutterDecoration(i, 'matched_row');
+	        		editor_left_session.addGutterDecoration(i, 'not_matched_row');
+	        		//editor_right_session.getDocument().insertNewLine({ row: i});
+>>>>>>> 8b82ba9ef56c8801c64bcab1e20d43facadd043c
 	        	}
 			}
 			signal = 0;
