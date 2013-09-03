@@ -125,20 +125,36 @@
     	/*Scrolling*/
 	    editor_left_session.on('changeScrollTop', function(scroll)
 		{
-			editor_right_session.setScrollTop(parseInt(scroll) || 0)
+			var scrollHeight = editor_right.renderer.scrollBar.element.scrollHeight - editor_right.renderer.scrollBar.element.offsetHeight;
+			if(scrollHeight > 0 && scrollHeight >= scroll)
+			{
+				editor_right_session.setScrollTop(parseInt(scroll));
+			}
 		});
 		editor_left_session.on('changeScrollLeft', function(scroll)
 		{
-			editor_right_session.setScrollLeft(parseInt(scroll) || 0)
+			var scrollWidth = editor_right.renderer.scrollBarH.element.scrollWidth - editor_right.renderer.scrollBarH.element.offsetWidth;
+			if(scrollWidth > 0 && scrollWidth >= scroll)
+			{
+				editor_right_session.setScrollLeft(parseInt(scroll));
+			}
 		});
 
 		editor_right_session.on('changeScrollTop', function(scroll)
 		{
-			editor_left_session.setScrollTop(parseInt(scroll) || 0)
+			var scrollHeight = editor_left.renderer.scrollBar.element.scrollHeight - editor_left.renderer.scrollBar.element.offsetHeight;
+			if(scrollHeight > 0 && scrollHeight >= scroll)
+			{
+				editor_left_session.setScrollTop(parseInt(scroll));
+			}
 		});
 		editor_right_session.on('changeScrollLeft', function(scroll)
 		{
-			editor_left_session.setScrollLeft(parseInt(scroll) || 0)
+			var scrollWidth = editor_left.renderer.scrollBarH.element.scrollWidth - editor_left.renderer.scrollBarH.element.offsetWidth;
+			if(scrollWidth > 0 && scrollWidth >= scroll)
+			{
+				editor_left_session.setScrollLeft(parseInt(scroll));
+			}
 		});
 
 		/*Changing value*/
@@ -147,31 +163,68 @@
 			if(!editor_right_session.getValue())
 				editor_right_session.setValue(text);
 
-			compare_editor_values();
+			//compare_editor_values();
 		})
 		editor_right.on('paste', function(text)
 		{
 			if(!editor_left_session.getValue())
 				editor_left_session.setValue(text);
 
-			compare_editor_values();
+			//compare_editor_values();
 		})
 
-		function compare_editor_values()
+		var signal = 0;
+		var worker_editor = editor_left, 
+			passive_editor = editor_right;
+		editor_left.on('change', function(changeData)
 		{
-			var left_lines = editor_left_session.getDocument().getAllLines();
-			var right_lines = editor_right_session.getDocument().getAllLines();
+			if(signal == 0)// && (changeData.data.text == '\n' || changeData.data.text == '\r\n'))
+			{
+				worker_editor = editor_left;
+				passive_editor = editor_right;
+				compare_editor_values(changeData.data.text);
+			}
+		})
+		editor_right.on('change', function(changeData)
+		{
+			if(signal == 0)// && (changeData.data.text == '\n' || changeData.data.text == '\r\n'))
+			{
+				worker_editor = editor_right;
+				passive_editor = editor_left;
+				compare_editor_values(changeData.data.text);
+			}
+		})
+		var markers = new Array();
+		function compare_editor_values(changeText)
+		{
+			signal = 1;
+			var worker_lines = worker_editor.getSession().getDocument().getAllLines();
+			var passive_lines = passive_editor.getSession().getDocument().getAllLines();
+
+			if(changeText == '\r\n' || changeText == '\n')
+	        {
+	        	var currentRow = worker_editor.getSelectionRange().start.row;
+	        	passive_editor.getSession().getDocument().insert({row: currentRow, column: 0}, '\r\n');
+	       	}
 
 			var last_same_line = -1;
-			for(var i=0; i < left_lines.length; i++)
+			for(var i=0; i < worker_lines.length; i++)
 			{
-	        	if(left_lines[i] == right_lines[i])
+	        	if(worker_lines[i] == passive_lines[i])
+	        	{
 	        		last_same_line = i;
+	        		
+	        		markers[i] = editor_left.getSession().highlightLines(i, i+1, null, false);
+	        	}
 	        	else
 	        	{
-	        		editor_right_session.getDocument().insertNewLine({ row: i});
+	        		if(markers[i])
+	        		{
+		        		editor_left.getSession().removeMarker(markers[i].id);
+	        		}
 	        	}
 			}
+			signal = 0;
 		}
 	</script>
 </body>
