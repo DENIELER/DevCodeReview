@@ -121,6 +121,8 @@
 	    var editor_right = ace.edit("editor_right");
 	    var editor_right_session = editor_right.getSession();
 	    editor_right.setTheme("ace/theme/xcode");
+		editor_right.setReadOnly(true);
+		editor_right.container.style.backgroundColor = 'lightgrey';
 
     	/*Scrolling*/
 	    editor_left_session.on('changeScrollTop', function(scroll)
@@ -158,107 +160,106 @@
 		});
 
 		/*Changing value*/
-		var signal = 0;
-		editor_left.on('paste', function(text)
-		{
-			if(!editor_right_session.getValue())
-				editor_right_session.setValue(text);
-<<<<<<< HEAD
-
-			//compare_editor_values();
-=======
->>>>>>> 8b82ba9ef56c8801c64bcab1e20d43facadd043c
-		})
-		editor_right.on('paste', function(text)
-		{
-			if(!editor_left_session.getValue())
-				editor_left_session.setValue(text);
-<<<<<<< HEAD
-
-			//compare_editor_values();
-		})
-
-		var signal = 0;
-		var worker_editor = editor_left, 
+		var signal = 0,
+			worker_editor = editor_left, 
 			passive_editor = editor_right;
 		editor_left.on('change', function(changeData)
 		{
 			if(signal == 0)// && (changeData.data.text == '\n' || changeData.data.text == '\r\n'))
 			{
+
+				editor_right.container.style.backgroundColor = 'white';
+				editor_right.setReadOnly(false);
+
 				worker_editor = editor_left;
 				passive_editor = editor_right;
-				compare_editor_values(changeData.data.text);
+				compare_editor_values();
 			}
-		})
+		});
 		editor_right.on('change', function(changeData)
 		{
 			if(signal == 0)// && (changeData.data.text == '\n' || changeData.data.text == '\r\n'))
 			{
 				worker_editor = editor_right;
 				passive_editor = editor_left;
-				compare_editor_values(changeData.data.text);
+				compare_editor_values();
 			}
-		})
-		var markers = new Array();
-		function compare_editor_values(changeText)
+		});
+				
+		function compare_editor_values()
 		{
 			signal = 1;
 			var worker_lines = worker_editor.getSession().getDocument().getAllLines();
 			var passive_lines = passive_editor.getSession().getDocument().getAllLines();
 
-			if(changeText == '\r\n' || changeText == '\n')
-	        {
-	        	var currentRow = worker_editor.getSelectionRange().start.row;
-	        	passive_editor.getSession().getDocument().insert({row: currentRow, column: 0}, '\r\n');
-	       	}
-=======
-		})
-
-		editor_left.on('change', function(text)
-		{
-			if(signal == 0)
-			{
-				compare_editor_values();	
-			}
-		})
-		function compare_editor_values()
-		{
-			signal = 1;
-			var left_lines = editor_left_session.getDocument().getAllLines();
-			var right_lines = editor_right_session.getDocument().getAllLines();
->>>>>>> 8b82ba9ef56c8801c64bcab1e20d43facadd043c
-
-			var last_same_line = -1;
 			for(var i=0; i < worker_lines.length; i++)
 			{
-<<<<<<< HEAD
-	        	if(worker_lines[i] == passive_lines[i])
+				if($.trim(worker_lines[i]) == $.trim(passive_lines[i]))
 	        	{
-	        		last_same_line = i;
-	        		
-	        		markers[i] = editor_left.getSession().highlightLines(i, i+1, null, false);
-	        	}
-	        	else
-	        	{
-	        		if(markers[i])
-	        		{
-		        		editor_left.getSession().removeMarker(markers[i].id);
+	        		worker_editor.getSession().removeGutterDecoration(i, 'not_matched_row');
+	        		worker_editor.getSession().removeGutterDecoration(i, 'matched_row');
+	        		worker_editor.getSession().addGutterDecoration(i, 'matched_row');
+
+        			if(!passive_editor.getReadOnly())
+        			{
+	        			passive_editor.getSession().removeGutterDecoration(i, 'not_matched_row');
+	        			passive_editor.getSession().removeGutterDecoration(i, 'matched_row');
+	        			passive_editor.getSession().addGutterDecoration(i, 'matched_row');
 	        		}
-=======
-	        	if(left_lines[i] == right_lines[i])
-	        	{
-	        		last_same_line = i;
-	        		editor_left_session.removeGutterDecoration(i, 'not_matched_row');
-	        		editor_left_session.removeGutterDecoration(i, 'matched_row');
-	        		editor_left_session.addGutterDecoration(i, 'matched_row');
 	        	}
 	        	else
 	        	{
-	        		editor_left_session.removeGutterDecoration(i, 'not_matched_row');
-	        		editor_left_session.removeGutterDecoration(i, 'matched_row');
-	        		editor_left_session.addGutterDecoration(i, 'not_matched_row');
-	        		//editor_right_session.getDocument().insertNewLine({ row: i});
->>>>>>> 8b82ba9ef56c8801c64bcab1e20d43facadd043c
+	        		var analogueIndex = -1,
+	        			analogueIndexPassive = -1;
+	        		for(var j=i; j < worker_lines.length; j++)
+	        		{
+	        			if($.trim(worker_lines[j]) == $.trim(passive_lines[i])
+	        				&& $.trim(worker_lines[j]).length)
+	        			{
+        					analogueIndex = j;
+	        				break;
+	        			}
+	        		}
+	        		if(analogueIndex == -1)
+	        		{
+	        			for(var j=i; j < passive_lines.length; j++)
+		        		{
+		        			if($.trim(worker_lines[i]) == $.trim(passive_lines[j])
+		        				&& $.trim(worker_lines[i]).length)
+		        			{
+	        					analogueIndexPassive = j;
+		        				break;
+		        			}
+		        		}	
+	        		}
+
+	        		if(analogueIndex != -1)
+	        		{
+		        		for(var k = i; k < analogueIndex; k++)
+		        		{
+		        			passive_editor.getSession().getDocument().insert({row:k, column:0}, passive_editor.getSession().getDocument().getNewLineCharacter());
+	        				passive_lines = passive_editor.getSession().getDocument().getAllLines();
+	        			}
+        			}else if(analogueIndexPassive != -1)
+        			{
+        				for(var k = i; k < analogueIndexPassive; k++)
+		        		{
+		        			worker_editor.getSession().getDocument().insert({row:k, column:0}, worker_editor.getSession().getDocument().getNewLineCharacter());
+	        				worker_lines = worker_editor.getSession().getDocument().getAllLines();
+	        			}
+        			}
+        			else{
+		        		worker_editor.getSession().removeGutterDecoration(i, 'not_matched_row');
+		        		worker_editor.getSession().removeGutterDecoration(i, 'matched_row');
+		        		worker_editor.getSession().addGutterDecoration(i, 'not_matched_row');
+
+	    				if(!passive_editor.getReadOnly())
+	        			{
+			        		passive_editor.getSession().removeGutterDecoration(i, 'not_matched_row');
+			        		passive_editor.getSession().removeGutterDecoration(i, 'matched_row');
+			        		passive_editor.getSession().addGutterDecoration(i, 'not_matched_row');
+			        	}
+		        	}
 	        	}
 			}
 			signal = 0;
