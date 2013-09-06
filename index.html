@@ -24,6 +24,21 @@
 		});
 	}
 	</script>
+
+	<style>
+		.overlay {
+		    background-color: #000;
+		    bottom: 0;
+		    display: none;
+		    left: 0;
+		    opacity: 0.5;
+		    filter: alpha(opacity = 50); /* IE7 & 8 */
+		    position: fixed;
+		    right: 0;
+		    top: 0;
+		    z-index: 1050;
+		}
+	</style>
 </head>
 <body>
 	<div class="navbar navbar-default navbar-fixed-top">
@@ -106,5 +121,7 @@
 
     <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/ace_editor_extension.js" type="text/javascript" charset="utf-8"></script>
+
+    <div class="overlay">&nbsp;</div>
 </body>
 </html>
