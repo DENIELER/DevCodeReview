@@ -55,6 +55,12 @@ editor_left.on('change', function(changeData)
 		editor_right.container.style.backgroundColor = 'white';
 		editor_right.setReadOnly(false);
 
+		if(firstTime && currentStep == 2)
+		{
+			$('#overlay').css('display', 'block');
+			$('#past_new_code_tooltip').css('display', 'block');
+		}
+
 		worker_editor = editor_left;
 		passive_editor = editor_right;
 		compare_editor_values();
@@ -64,6 +70,14 @@ editor_right.on('change', function(changeData)
 {
 	if(signal == 0)// && (changeData.data.text == '\n' || changeData.data.text == '\r\n'))
 	{
+		if(firstTime && currentStep == 3)
+		{
+			$('#overlay').css('display', 'block');
+			$('#share_tooltip').css('display', 'block');
+
+			scrollToAnchor('share_tooltip');
+		}
+
 		worker_editor = editor_right;
 		passive_editor = editor_left;
 		compare_editor_values();

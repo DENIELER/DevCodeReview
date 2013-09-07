@@ -20,13 +20,22 @@
 					editor_left.getSession().setMode("ace/mode/" + $scope.editorLanguage);
 				if(editor_right)
 					editor_right.getSession().setMode("ace/mode/" + $scope.editorLanguage);
+
+				if(firstTime && currentStep == 1)
+				{
+					$('#overlay').css('display', 'block');
+					$('#past_old_code_tooltip').css('display', 'block');
+				}
 			}
 		});
 	}
+
+	firstTime = true;
+	currentStep = 0;
 	</script>
 
 	<style>
-		.overlay {
+		#overlay {
 		    background-color: #000;
 		    bottom: 0;
 		    display: none;
@@ -37,6 +46,22 @@
 		    right: 0;
 		    top: 0;
 		    z-index: 1050;
+		}
+
+		.modaltooltip
+		{
+			z-index: 1100;
+			display: block;
+			position: absolute;
+			font-size: 1.4em;
+			text-align: center;
+		}
+
+		#share-btn
+		{
+			font-size: 1.4em;
+			margin-top: 15px;
+			width: 100%;
 		}
 	</style>
 </head>
@@ -76,6 +101,13 @@
 		<div class="clearfix">	    
 			<div class="row">
 				<div class="col-md-12">
+					<div class="modaltooltip popover top" id="select_language_tooltip" style="top: -208px; display: none;">
+						<div class="arrow"></div>
+						<div class="popover-content">
+							<img src="img/t9batty_trans.png" /><br/>
+				    		Choose your language, developer!
+				    	</div>
+				    </div>
 					Please choose your language: 
 					<select class="form-control" ng-model="editorLanguage">
 						<option value="csharp">С#</option>
@@ -97,14 +129,44 @@
 	    <div>
 	    	<div class="row">
 	    		<div class="col-md-6">
+	    			<div class="modaltooltip popover bottom" id="past_old_code_tooltip" style="top: 150px; left: 160px; display: none;">
+						<div class="arrow"></div>
+						<div class="popover-content">
+							<img src="img/t9dog1_trans.png" /><br/>
+				    		Paste here your old code, developer!
+				    	</div>
+				    </div>
+
 	    			<h4>Old code</h4>
     				<div id="editor_left"></div>
 	    		</div>
 
 	    		<div class="col-md-6">
+	    			<div class="modaltooltip popover bottom" id="past_new_code_tooltip" style="top: 150px; left: 160px; display: none;">
+						<div class="arrow"></div>
+						<div class="popover-content">
+							<img src="img/t9elephant_trans.png" /><br/>
+				    		Paste your new (edited) code here, developer!
+				    	</div>
+				    </div>
+
 	    			<h4>New code</h4>
 	    			<div id="editor_right"></div>
 	    		</div>
+	    	</div>
+
+	    	<div class="row">
+	    		<div class="col-md-12">
+	    			<div class="modaltooltip popover top" id="share_tooltip" style="top: -210px; left: 450px; display: none;">
+						<div class="arrow"></div>
+						<div class="popover-content">
+							<img src="img/t9panda_trans.png" /><br/>
+				    		Share your code to another developer for Code Review, developer!
+				    	</div>
+				    </div>
+
+				    <button type="button" id="share-btn" class="btn btn-primary">Share for code review</button>
+			    </div>
 	    	</div>
 	    </div>
     
@@ -112,7 +174,7 @@
 	    	<div class="row">
 	    		<div class="col-md-12">
 	    			<p>
-	    				Made by <a href="#">Daniel Ostapenko</a>
+	    				Made by <a href="http://www.facebook.com/danielostapenko">Daniel Ostapenko</a>
 	    			</p>
 	    		</div>
 	    	</div>
@@ -121,7 +183,71 @@
 
     <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/ace_editor_extension.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/jquery-cookie.js" type="text/javascript" charset="utf-8"></script>
 
-    <div class="overlay">&nbsp;</div>
+    <div id="overlay">&nbsp;</div>
+
+    <script type="text/javascript">
+    $('#overlay').click(function()
+		{
+			if(firstTime)
+			{
+				if(currentStep == 0)
+				{
+					$(this).css('display', 'none');
+					$('#select_language_tooltip').css('display', 'none');
+
+					editor_left.setReadOnly(true);
+					editor_left.container.style.backgroundColor = 'lightgrey';
+
+					currentStep++;
+				}else if(currentStep == 1)
+				{
+					$(this).css('display', 'none');
+					$('#past_old_code_tooltip').css('display', 'none');
+
+					editor_left.setReadOnly(false);
+					editor_left.container.style.backgroundColor = 'white';
+
+					currentStep++;
+				}
+				else if(currentStep == 2)
+				{
+					$(this).css('display', 'none');
+					$('#past_new_code_tooltip').css('display', 'none');
+					currentStep++;
+				}else if(currentStep == 3)
+				{
+					$.cookie('FirstTimeVisit', 'false');
+
+					$(this).css('display', 'none');
+					$('#share_tooltip').css('display', 'none');
+					currentStep++;
+				}
+			}
+		});
+
+    $().ready(function()
+    {
+    	firstTime = !$.cookie('FirstTimeVisit');
+
+    	if(firstTime)
+    	{
+	    	function startShowTips()
+	    	{
+	    		$('#overlay').css('display', 'block');
+				$('#select_language_tooltip').css('display', 'block');
+				currentStep = 0;
+	    	}
+	    	window.setTimeout(startShowTips , 2000 )
+    	}
+    });
+
+    function scrollToAnchor(id)
+    {
+    	var tag = $("#"+ id +"");
+    	$('html,body').animate({scrollTop: tag.offset().top},'slow');
+	}
+    </script>
 </body>
 </html>
