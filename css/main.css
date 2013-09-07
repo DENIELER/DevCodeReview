@@ -13,3 +13,33 @@ body{padding-top:50px}#banner{border-bottom:0}.page-header h1{font-size:4em}.bs-
     overflow: hidden;
     height: 600px;
 }
+
+#overlay 
+{
+    background-color: #000;
+    bottom: 0;
+    display: none;
+    left: 0;
+    opacity: 0.5;
+    filter: alpha(opacity = 50); /* IE7 & 8 */
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1050;
+}
+
+.modaltooltip
+{
+	z-index: 1100;
+	display: block;
+	position: absolute;
+	font-size: 1.4em;
+	text-align: center;
+}
+
+#share-btn
+{
+	font-size: 1.4em;
+	margin-top: 15px;
+	width: 100%;
+}

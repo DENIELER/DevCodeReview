@@ -2,6 +2,9 @@
 <html ng-app>
 <head>
 	<title>Dev Code Review</title>
+
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+
 	<script type="text/javascript" src="js/jquery-2.0.3.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.js"></script>
 
@@ -9,61 +12,6 @@
 	<link rel="stylesheet" type="text/css" href="css/main.css">
 
 	<script src="js/angular.min.js"></script>
-
-	<script type="text/javascript">
-	function MainController($scope)
-	{
-		$scope.$watch('editorLanguage', function(){
-			if($scope.editorLanguage)
-			{
-				if(editor_left)
-					editor_left.getSession().setMode("ace/mode/" + $scope.editorLanguage);
-				if(editor_right)
-					editor_right.getSession().setMode("ace/mode/" + $scope.editorLanguage);
-
-				if(firstTime && currentStep == 1)
-				{
-					$('#overlay').css('display', 'block');
-					$('#past_old_code_tooltip').css('display', 'block');
-				}
-			}
-		});
-	}
-
-	firstTime = true;
-	currentStep = 0;
-	</script>
-
-	<style>
-		#overlay {
-		    background-color: #000;
-		    bottom: 0;
-		    display: none;
-		    left: 0;
-		    opacity: 0.5;
-		    filter: alpha(opacity = 50); /* IE7 & 8 */
-		    position: fixed;
-		    right: 0;
-		    top: 0;
-		    z-index: 1050;
-		}
-
-		.modaltooltip
-		{
-			z-index: 1100;
-			display: block;
-			position: absolute;
-			font-size: 1.4em;
-			text-align: center;
-		}
-
-		#share-btn
-		{
-			font-size: 1.4em;
-			margin-top: 15px;
-			width: 100%;
-		}
-	</style>
 </head>
 <body>
 	<div class="navbar navbar-default navbar-fixed-top">
@@ -165,16 +113,34 @@
 				    	</div>
 				    </div>
 
-				    <button type="button" id="share-btn" class="btn btn-primary">Share for code review</button>
+				    <button ng-click="share()" type="button" id="share-btn" class="btn btn-primary">Share for code review</button>
 			    </div>
 	    	</div>
+
+	    	<div class="modal fade" id="shareModal" tabindex="-1" role="dialog" aria-hidden="true">
+			    <div class="modal-dialog">
+			      <div class="modal-content">
+			        <div class="modal-header">
+			          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			          <h4 class="modal-title">Share link</h4>
+			        </div>
+			        <div class="modal-body">
+			          Link for share:
+			          <input class="form-control" type="text" ng-model="shareFileName" style="cursor: default;" readonly>
+			        </div>
+			        <div class="modal-footer">
+			          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			        </div>
+			      </div><!-- /.modal-content -->
+			    </div><!-- /.modal-dialog -->
+			</div><!-- /.modal -->
 	    </div>
     
 	    <footer>
 	    	<div class="row">
 	    		<div class="col-md-12">
 	    			<p>
-	    				Made by <a href="http://www.facebook.com/danielostapenko">Daniel Ostapenko</a>
+	    				Made in <a href="http://www.facebook.com/danielostapenko">Daniel Ostapenko</a>
 	    			</p>
 	    		</div>
 	    	</div>
@@ -188,49 +154,76 @@
     <div id="overlay">&nbsp;</div>
 
     <script type="text/javascript">
+    var firstTime = true;
+	var currentStep = 0;
+
     $('#overlay').click(function()
+	{
+		if(firstTime)
 		{
-			if(firstTime)
+			if(currentStep == 0)
 			{
-				if(currentStep == 0)
-				{
-					$(this).css('display', 'none');
-					$('#select_language_tooltip').css('display', 'none');
+				$(this).css('display', 'none');
+				$('#select_language_tooltip').css('display', 'none');
 
-					editor_left.setReadOnly(true);
-					editor_left.container.style.backgroundColor = 'lightgrey';
+				editor_left.setReadOnly(true);
+				editor_left.container.style.backgroundColor = 'lightgrey';
 
-					currentStep++;
-				}else if(currentStep == 1)
-				{
-					$(this).css('display', 'none');
-					$('#past_old_code_tooltip').css('display', 'none');
+				currentStep++;
+			}else if(currentStep == 1)
+			{
+				$(this).css('display', 'none');
+				$('#past_old_code_tooltip').css('display', 'none');
 
-					editor_left.setReadOnly(false);
-					editor_left.container.style.backgroundColor = 'white';
+				editor_left.setReadOnly(false);
+				editor_left.container.style.backgroundColor = 'white';
 
-					currentStep++;
-				}
-				else if(currentStep == 2)
-				{
-					$(this).css('display', 'none');
-					$('#past_new_code_tooltip').css('display', 'none');
-					currentStep++;
-				}else if(currentStep == 3)
-				{
-					$.cookie('FirstTimeVisit', 'false');
-
-					$(this).css('display', 'none');
-					$('#share_tooltip').css('display', 'none');
-					currentStep++;
-				}
+				currentStep++;
 			}
-		});
+			else if(currentStep == 2)
+			{
+				$(this).css('display', 'none');
+				$('#past_new_code_tooltip').css('display', 'none');
+				currentStep++;
+			}else if(currentStep == 3)
+			{
+				$.cookie('FirstTimeVisit', 'false');
 
-    $().ready(function()
+				$(this).css('display', 'none');
+				$('#share_tooltip').css('display', 'none');
+				currentStep++;
+			}
+		}
+	});
+
+    function scrollToAnchor(id)
     {
-    	firstTime = !$.cookie('FirstTimeVisit');
+    	var tag = $("#"+ id +"");
+    	$('html,body').animate({scrollTop: tag.offset().top},'slow');
+	}
 
+	function MainController($scope, $http)
+	{
+		var filename = window.location.hash;
+		filename = filename.replace('#/','');
+
+		firstTime = true;
+		if(filename)
+			firstTime = false;
+		else
+			firstTime = !$.cookie('FirstTimeVisit');
+		
+		$http({
+			method:'POST',
+			url:'getcode.php',
+			data: {file: filename}
+		}).success(function(data, status)
+		{
+			$scope.editorLanguage = data.language;
+			editor_left.getSession().setValue(data.oldCode);
+			editor_right.getSession().setValue(data.newCode);
+		});
+			
     	if(firstTime)
     	{
 	    	function startShowTips()
@@ -241,13 +234,40 @@
 	    	}
 	    	window.setTimeout(startShowTips , 2000 )
     	}
-    });
+		
+		$scope.$watch('editorLanguage', function(){
+			if($scope.editorLanguage)
+			{
+				if(editor_left)
+					editor_left.getSession().setMode("ace/mode/" + $scope.editorLanguage);
+				if(editor_right)
+					editor_right.getSession().setMode("ace/mode/" + $scope.editorLanguage);
 
-    function scrollToAnchor(id)
-    {
-    	var tag = $("#"+ id +"");
-    	$('html,body').animate({scrollTop: tag.offset().top},'slow');
+				if(firstTime && currentStep == 1)
+				{
+					$('#overlay').css('display', 'block');
+					$('#past_old_code_tooltip').css('display', 'block');
+				}
+			}
+		});
+
+		$scope.share = function share()
+		{
+			var languageValue = $scope.editorLanguage;
+			var oldCodeText = editor_left.getSession().getValue();
+			var newCodeText = editor_right.getSession().getValue();
+
+			$http({
+				url:'save.php',
+				method:'POST',
+				data:{ language: languageValue, oldCode: oldCodeText, newCode: newCodeText }
+			}).success(function(data, status)
+			{
+				$scope.shareFileName = 'http://devcodereview.ru/#/' + data;
+				$('#shareModal').modal('show');
+			});
+		}
 	}
-    </script>
+	</script>
 </body>
 </html>
